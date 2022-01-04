@@ -21,13 +21,13 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Start defining your routes here
+// Start defining your routes here. Parameter request (req) is handling what the front end is sending to the backend. Response (res) is what is sended to the back to the front end. 
 app.get('/', (req, res) => {
-  res.send('Hello world')
+  res.send('Hej world')
 })
 
 // Start the server
 app.listen(port, () => {
   // eslint-disable-next-line
-  console.log(`Server running on http://localhost:${port}`)
+  console.log(`Server running on http://localhost:${port} `)
 })

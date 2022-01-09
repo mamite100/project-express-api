@@ -1,19 +1,8 @@
 import express from 'express'
 import cors from 'cors'
+import listEndpoints from 'express-list-endpoints'
+import netflixData from '.data/netflix-titles.json'
 
-// If you're using one of our datasets, uncomment the appropriate import below
-// to get started!
-// 
-// import goldenGlobesData from './data/golden-globes.json'
-// import avocadoSalesData from './data/avocado-sales.json'
-// import booksData from './data/books.json'
-// import netflixData from './data/netflix-titles.json'
-// import topMusicData from './data/top-music.json'
-
-// Defines the port the app will run on. Defaults to 8080, but can be 
-// overridden when starting the server. For example:
-//
-//   PORT=9000 npm start
 const port = process.env.PORT || 8080
 const app = express()
 
@@ -21,13 +10,69 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Start defining your routes here. Parameter request (req) is handling what the front end is sending to the backend. Response (res) is what is sended to the back to the front end. 
+// defining routes . Parameter request (req) is handling what the front end is sending to the backend. Response (res) is what is sended to the back to the front end. 
+// this is our first end point 
 app.get('/', (req, res) => {
-  res.send('Hej world')
+  res.json('Index page')
 })
 
-// Start the server
+app.get ('/endpoints', (req, res) => {
+  res.send(listEndpoints(app))
+})
+
+app.get('/catalogue', (req, res) => {
+  const { netflixTitle, netflixYear } = req.query
+
+  let netflixDataToSend = netflixData
+  
+  if (netflixTitle) {
+    netflixDataToSend = netflixDataToSend.filter(
+      (item) => item.title.toLowerCase().indexOf(netflixTitle.toLowerCase()) !== -1
+    )
+  }
+
+  if (netflixYear) {
+    netflixDataToSend = netflixDataToSend.filter(
+      (item) => item.release_year === +netflixYear
+    )
+  }
+
+  res.json({
+    response: netflixDataToSend,
+    success: true,
+  })
+})
+
+app.get('/catalogue/ids/:netflixId', (req, res) => {
+  const { netflixId } = req.params
+
+  const titleId = netflixData.find(item => item.show_id === +netflixId)
+
+  if (!titleId) {
+    res.status(404).send('No title by that id was found.')
+  } else {
+    res.json(titleId)
+  }
+})
+
+app.get('/catalogue/names/:netflixTitle', (req, res) => {
+  const { netflixTitle } = req.params
+  
+  const titleName = netflixData.find(item => item.title.toLowerCase() === netflixTitle.toLowerCase())
+
+  if (titleName) {
+    res.status(200).json({
+      response: titleName,
+      success: true,
+    })
+  } else {
+    res.status(404).json({
+      response: 'Sorry, no title by that name was found.',
+      success: false,
+    })
+  }
+})
+
 app.listen(port, () => {
-  // eslint-disable-next-line
-  console.log(`Server running on http://localhost:${port} `)
+  console.log(`Server running on http://localhost:${port}`)
 })
